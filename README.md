@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# Рецептор — фронтенд
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение сервиса рецептов: просмотр публичных рецептов, поиск и фильтры,
+избранное, создание и редактирование собственных рецептов, авторизация.
 
-Currently, two official plugins are available:
+Стек: **Next.js 16 (App Router, статический экспорт)**, **React 19**, **TypeScript**,
+**Tailwind CSS v4**, **shadcn/ui** (стиль base-nova на примитивах Base UI),
+**TanStack Query**, **axios**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Требования
 
-## React Compiler
+- Node.js 20+ (проверено на Node 22)
+- Запущенный бэкенд (`recipes-backend`)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Переменные окружения
 
-## Expanding the ESLint configuration
+Адрес API задаётся переменной `NEXT_PUBLIC_BASE_PATH` (файлы `.env`, `.env.production`):
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.oldApp.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+NEXT_PUBLIC_BASE_PATH=https://api.daloof.ru
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Для локальной разработки против локального бэкенда укажите `http://localhost:8080`.
+Бэкенд уже разрешает CORS для `http://localhost:3000` и `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Запуск
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.oldApp.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev        # http://localhost:3000
 ```
+
+## Сборка
+
+```bash
+npm run build      # статический экспорт в ./dist
+```
+
+Готовый `./dist` раздаётся как SPA (см. `nginx.conf` и `Dockerfile`): все
+неизвестные пути отдают `index.html`, поэтому глубокие ссылки работают.
+Динамические данные (рецепт, редактирование) передаются через query-параметры
+(`/recipe?id=…`, `/edit?id=…`), что совместимо со статическим экспортом.
+
+## Структура
+
+```
+src/
+  app/                 маршруты (главная, /login, /register, /recipe, /create,
+                       /edit, /my, /favorites, /search, /random, /profile,
+                       /auth/callback)
+  components/ui/       shadcn-компоненты (button, card, input, select, dialog, …)
+  components/common/   вспомогательные (spinner, empty-state, require-auth, …)
+  lib/api/             axios-клиент, типы, эндпоинты
+  lib/auth/            контекст авторизации (JWT + авто-refresh)
+  lib/hooks/           хуки TanStack Query
+  widgets/             AppShell, LeftSidebar, Topbar, RecipeCard, RecipeForm, Filters
+```
+
+## Возможности
+
+- Регистрация и вход (JWT, автоматическое обновление access-токена по refresh)
+- Лента публичных рецептов с фильтрами (категория, сложность, тип блюда, теги)
+- Поиск, случайный рецепт
+- Страница рецепта: ингредиенты, шаги, метаданные, добавление в избранное
+- Создание и редактирование рецептов (динамические ингредиенты и шаги, теги)
+- Разделы «Мои рецепты», «Избранное», «Профиль» (смена пароля, данные)

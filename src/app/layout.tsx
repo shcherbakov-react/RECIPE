@@ -1,39 +1,34 @@
-import {Metadata} from "next";
+import { Metadata } from "next";
 
-import './styles/reset.css';
-import './styles/main.css';
-import './styles/variables.css';
-import s from './styles.module.css';
-import { LeftSidebar } from "widgets/LeftSidebar";
-import { Geist } from "next/font/google";
-import { cn } from "lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import "./styles/main.css";
+import "./styles/variables.css";
+import s from "./styles.module.css";
+import { Providers } from "@/lib/providers";
+import { AppShell } from "@/widgets/AppShell/ui/AppShell";
 
 export const metadata: Metadata = {
-  title: 'Рецептор',
-  description: 'My App description.'
-}
+  title: "Рецептор — коллекция рецептов",
+  description: "Находите, сохраняйте и создавайте кулинарные рецепты.",
+};
 
 export default function RootLayout({
- children,
+  children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={cn("font-sans", geist.variable)}>
+    <html lang="ru" className="font-sans">
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
-        <div className={s.root} id="root">
-          <div className={'flex'}>
-            <LeftSidebar/>
-            {children}
+        <Providers>
+          <div className={s.root} id="root">
+            <AppShell>{children}</AppShell>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
-  )
+  );
 }
