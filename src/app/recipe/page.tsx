@@ -109,7 +109,6 @@ function RecipeView() {
 
       {recipe.image_url && (
         <div className="mb-6 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={recipe.image_url} alt={recipe.title} className="size-full object-cover" />
         </div>
       )}

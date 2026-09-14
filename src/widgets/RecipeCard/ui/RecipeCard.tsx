@@ -34,7 +34,6 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
       <Link href={`/recipe?id=${recipe.id}`} className="flex h-full flex-col">
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
           {recipe.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={recipe.image_url}
               alt={recipe.title}
