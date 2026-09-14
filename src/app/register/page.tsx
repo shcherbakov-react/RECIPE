@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { OAuthButtons } from "@/components/common/oauth-buttons";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -91,6 +92,9 @@ export default function RegisterPage() {
                 {loading ? "Создание…" : "Зарегистрироваться"}
               </Button>
             </form>
+            <div className="mt-5">
+              <OAuthButtons />
+            </div>
           </CardContent>
         </Card>
         <p className="mt-4 text-center text-sm text-muted-foreground">
