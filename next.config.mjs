@@ -2,6 +2,8 @@
 const nextConfig = {
     output: 'export', // Outputs a Single-Page Application (SPA).
     distDir: './dist', // Changes the build output directory to `./dist/`.
+    trailingSlash: true, // Каждый маршрут экспортируется как <route>/index.html,
+    // чтобы nginx корректно отдавал прямые заходы и deep-link'и (в т.ч. /auth/callback/).
 }
 
 export default nextConfig
