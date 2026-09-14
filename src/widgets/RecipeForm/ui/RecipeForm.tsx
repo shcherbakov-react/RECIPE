@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { ImagePlus, Plus, Trash2, X } from "lucide-react";
 import type {
   CreateRecipeInput,
   Difficulty,
@@ -24,6 +24,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useCategories, useTags } from "@/lib/hooks/use-recipes";
+import { uploadsApi } from "@/lib/api/endpoints";
+import { apiErrorMessage } from "@/lib/api/client";
 import { DIFFICULTY_OPTIONS, MEAL_TYPE_OPTIONS } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -156,6 +158,32 @@ export function RecipeForm({
 
   const set = (patch: Partial<RecipeFormValues>) => onChange({ ...values, ...patch });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const onPickFile = async (file?: File) => {
+    if (!file) return;
+    setUploadError(null);
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Можно загрузить только изображение.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Файл слишком большой (максимум 5 МБ).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { url } = await uploadsApi.image(file);
+      set({ image_url: url });
+    } catch (err) {
+      setUploadError(apiErrorMessage(err, "Не удалось загрузить фото."));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const selectedTagIds = useMemo(() => new Set(values.tag_ids), [values.tag_ids]);
 
   const submit = (e: React.FormEvent) => {
@@ -216,13 +244,60 @@ export function RecipeForm({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="image">Ссылка на изображение</Label>
-            <Input
-              id="image"
-              value={values.image_url}
-              onChange={(e) => set({ image_url: e.target.value })}
-              placeholder="https://…"
+            <Label>Фото рецепта</Label>
+            {values.image_url ? (
+              <div className="relative w-full overflow-hidden rounded-lg border">
+                <img
+                  src={values.image_url}
+                  alt="Превью"
+                  className="max-h-64 w-full object-cover"
+                />
+                <div className="absolute right-2 top-2 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Загрузка…" : "Заменить"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => set({ image_url: "" })}
+                    disabled={uploading}
+                    aria-label="Убрать фото"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-60"
+              >
+                <ImagePlus className="size-6" />
+                {uploading ? "Загрузка…" : "Загрузить фото"}
+                <span className="text-xs">JPEG, PNG, WebP или GIF, до 5 МБ</span>
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                void onPickFile(f);
+              }}
             />
+            {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -1,5 +1,6 @@
-import { apiDelete, apiGet, apiPost, apiPut } from "./client";
+import { api, apiDelete, apiGet, apiPost, apiPut, unwrap } from "./client";
 import type {
+  ApiEnvelope,
   AuthResponse,
   Category,
   CreateRecipeInput,
@@ -89,4 +90,19 @@ export const dictionariesApi = {
     apiGet<Tag[]>(
       `/api/v1/tags?${new URLSearchParams({ q: q ?? "", limit: String(limit) })}`
     ),
+};
+
+// ---------- Uploads ----------
+export const uploadsApi = {
+  /** Загружает изображение на сервер и возвращает публичную ссылку на него. */
+  image: async (file: File): Promise<{ url: string }> => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await api.post<ApiEnvelope<{ url: string }>>(
+      "/api/v1/uploads/image",
+      form,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return unwrap(res.data);
+  },
 };
